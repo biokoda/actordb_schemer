@@ -1,6 +1,14 @@
 ActorDB Schemer
 
-ActorDB schemer enables automatic versioned actor schema upgrades.
+ActorDB Schemer provides versioned Actor schema upgrades through a record based model that is converted to SQL queries and
+executes them on request. ActorDB Schemer **requires** requires schema change privileges in order to work.
+
+Goal:
+
+ActorDB Schemer can be integrated directly into Erlang/Elixir application that connect to ActorDB via ActorDB Client (Thrift Connector) that
+is available at https://github.com/biokoda/actordb_client.
+
+In conjunction with ActorDB Schemer an application can perform automatic schema updates for Actors from a predefined database model.
 
 **EXPERIMENTAL**
 
@@ -14,6 +22,7 @@ Example A - Schema version 0:
 ```
 -module(test_schema).
 -include_lib("actordb_schemer.hrl").
+-behaviour(actordb_schemer_proto).
 -export([schema_ver/0, schema_def/0]).
 
 schema_ver() ->
@@ -36,6 +45,7 @@ Example A - Schema version 1:
 ```
 -module(test_schema).
 -include_lib("actordb_schemer.hrl").
+-behaviour(actordb_schemer_proto).
 -export([schema_ver/0, schema_def/0]).
 
 schema_ver() ->
