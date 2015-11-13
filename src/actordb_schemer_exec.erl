@@ -1,4 +1,4 @@
--module(actordb_schemer_util).
+-module(actordb_schemer_exec).
 -include("actordb_schemer.hrl").
 -author('Biokoda d.o.o.').
 
@@ -188,10 +188,10 @@ table_constraints(Opts) ->
       % FOREIGN KEY (id) REFERENCES actors (id) ON DELETE CASCADE
       % Example: {foreign_key,[{key,["id"]},{ref_table,"actors"},{ref_id,["id"]},{opts,[on_delete_cascade]}]}
       {foreign_key, FKOpts} ->
-        Fk = join(butil:ds_val(key,FKOpts), ","),
-        Ref = butil:ds_val(ref_table,FKOpts),
-        RefId = join(butil:ds_val(ref_id,FKOpts),","),
-        FkCfg = butil:ds_val(opts,FKOpts),
+        Fk = join(lists:keyfind(key,1,FKOpts), ","),
+        Ref = lists:keyfind(ref_table,1,FKOpts),
+        RefId = join(lists:keyfind(ref_id,1,FKOpts),","),
+        FkCfg = lists:keyfind(opts,1,FKOpts),
         ODC = [<<" ON DELETE CASCADE">> || true <- [lists:member(on_delete_cascade, FkCfg)]],
         OUC = [<<" ON UPDATE CASCADE">> || true <- [lists:member(on_update_cascade, FkCfg)]],
         iolist_to_binary(["FOREIGN KEY (",Fk,") REFERENCES ", Ref," (",RefId,")", ODC, OUC]);
