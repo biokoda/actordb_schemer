@@ -1,0 +1,6 @@
+{application, actordb_schemer,[
+  {description, "ActorDB Schema Generator / Upgrader"},
+  {vsn, "1"},
+  {modules, [actordb_schemer]},
+  {applications, [kernel, stdlib, bkdcore]}
+]}.
