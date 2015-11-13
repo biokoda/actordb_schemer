@@ -1,3 +1,6 @@
+.eunit/*
 deps/*
 ebin/*
 .rebar/erlcinfo
+rebar
+.DS_Store

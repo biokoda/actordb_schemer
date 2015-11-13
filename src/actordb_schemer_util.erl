@@ -19,6 +19,8 @@ check(ADBCfg, ProvidedSchema) ->
   end || {actor, Name, Changes} <- RequiredChanges],
   {ok, UpdateCommands}.
 
+upgrade({schema,_},_) ->
+  ok;
 upgrade(ADBCfg, ProvidedSchema) ->
 	case check(ADBCfg, ProvidedSchema) of
     {ok, []} ->
@@ -32,6 +34,8 @@ upgrade(ADBCfg, ProvidedSchema) ->
       {error, R}
   end.
 
+current_schema({schema,S}) ->
+  S;
 current_schema(ADBCfg) ->
 	{ok,Actors} = actordb_client:actor_types(ADBCfg),
 	[begin

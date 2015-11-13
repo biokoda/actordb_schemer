@@ -2,6 +2,10 @@
 -author('Biokoda d.o.o.').
 -include("actordb_schemer.hrl").
 
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-endif.
+
 -export([setup/1,setup/2]).
 -export([schema/0, schema/1]).
 -export([version/0]).
@@ -62,3 +66,40 @@ check(AdbConfig) ->
 -spec upgrade(any()) -> any().
 upgrade(AdbConfig) ->
   actordb_schemer_util:upgrade(AdbConfig, schema()).
+
+-ifdef(TEST).
+
+-define('test-schema-1',[
+  #adb_actor{ name = <<"test-actor">>, opts = [without_rowid], tables = [
+    #adb_table{ name = <<"test-table1">>, fields = [
+      #adb_field{ name = <<"id">>, type = <<"INTEGER">>, opts = [primary_key]}
+    ]}
+  ]}
+]).
+
+-define('test-schema-2',[
+  #adb_actor{ name = <<"test-actor">>, opts = [without_rowid], tables = [
+    #adb_table{ name = <<"test-table1">>, fields = [
+      #adb_field{ name = <<"id">>, type = <<"INTEGER">>, opts = [primary_key]},
+      #adb_field{ name = <<"new-field">>, type = <<"TEXT">>, ver = 2}
+    ]}
+  ]},
+  #adb_actor{ name = <<"test-actor-2">>, ver = 2, opts = [], tables = [
+    #adb_table{ name = <<"test-table-21">>, ver = 2, fields = [
+      #adb_field{ name = <<"id">>, type = <<"TEXT">>, ver = 2},
+      #adb_field{ name = <<"new-field">>, type = <<"TEXT">>, ver = 2}
+    ]}
+  ]}
+]).
+
+schemer_test() ->
+  application:ensure_all_started(actordb_schemer),
+  actordb_schemer:setup(?MODULE,[silent]),
+  CheckResult1 = actordb_schemer_util:check({schema,?'test-schema-1'},?'test-schema-1'),
+  CheckResult2 = actordb_schemer_util:check({schema,?'test-schema-1'},?'test-schema-2'),
+  [ ?assertEqual(?MODULE,actordb_schemer_cfg:def_module()),
+  ?assertEqual(true,actordb_schemer_cfg:silent()),
+  ?assertMatch({ok,[]},CheckResult1),
+  ?assertMatch({ok,[_|_]},CheckResult2)
+  ].
+-endif.
