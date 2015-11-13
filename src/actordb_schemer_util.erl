@@ -7,6 +7,8 @@
 
 -define(MARK(X), case X of [] -> "\\"; _ -> "|" end).
 -define(PARENT_MARK, case get(parent_mark) of undefined -> " "; _ -> "|" end).
+-define(STDOUT(X), ?STDOUT(X,[])).
+-define(STDOUT(X,Y), case actordb_schemer_cfg:silent() of false -> io:format(X,Y); true -> ok end).
 
 check(ADBCfg, ProvidedSchema) ->
   ExpectedSchema = ProvidedSchema,
@@ -20,11 +22,11 @@ check(ADBCfg, ProvidedSchema) ->
 upgrade(ADBCfg, ProvidedSchema) ->
 	case check(ADBCfg, ProvidedSchema) of
     {ok, []} ->
-      io:format("~nNothing to execute. Schema up-to-date.~n"),
+      ?STDOUT("~nNothing to execute. Schema up-to-date.~n"),
       ok;
     {ok, Commands} ->
       BinCommands = iolist_to_binary(Commands),
-      io:format("~nExecuting: ~s~n",[BinCommands]),
+      ?STDOUT("~nExecuting: ~s~n",[BinCommands]),
       actordb_client:exec_schema(ADBCfg, BinCommands);
     R ->
       {error, R}
@@ -48,12 +50,12 @@ upgrade_actors([],_,Changes) ->
 upgrade_actors([Actor|L], CurSchema, Changes) when is_record(Actor, adb_actor) ->
   TableChanges = case extract_actor(Actor#adb_actor.name, CurSchema) of
     undefined ->
-      io:format("~nACTOR ~s (CREATE)~n",[Actor#adb_actor.name]),
+      ?STDOUT("~nACTOR ~s (CREATE)~n",[Actor#adb_actor.name]),
       EmptyActor = #adb_actor{ name = Actor#adb_actor.name, opts = Actor#adb_actor.opts, tables = [] },
       upgrade_tables(Actor#adb_actor.tables, EmptyActor, []);
     CurActorDef ->
       % actor exists, update or create tables
-      io:format("~nACTOR ~s (VALIDATE)~n",[Actor#adb_actor.name]),
+      ?STDOUT("~nACTOR ~s (VALIDATE)~n",[Actor#adb_actor.name]),
       upgrade_tables(Actor#adb_actor.tables, CurActorDef, [])
   end,
   case TableChanges of
@@ -70,12 +72,12 @@ upgrade_tables([Table|L], CurActorDef, Changes) when is_record(Table, adb_table)
   case L of [] -> put(parent_mark,undefined); _ -> put(parent_mark,true) end,
   case extract_table(Table#adb_table.name, CurActorDef#adb_actor.tables) of
     undefined ->
-      io:format("|~n|-- creating TABLE ~s~n",[Table#adb_table.name]),
+      ?STDOUT("|~n|-- creating TABLE ~s~n",[Table#adb_table.name]),
       % @TODO: create table
       Command = {create_table, Table},
       upgrade_tables(L, CurActorDef, [Command|Changes]);
     CurTableDef ->
-      io:format("|~n|-- validating TABLE ~s~n",[Table#adb_table.name]),
+      ?STDOUT("|~n|-- validating TABLE ~s~n",[Table#adb_table.name]),
       FieldChanges = upgrade_fields(Table#adb_table.fields, CurTableDef, []),
       case FieldChanges of
         [] ->
@@ -90,11 +92,11 @@ upgrade_fields([],_,Changes) ->
 upgrade_fields([Field|L], CurTableDef, Out) when is_record(Field, adb_field)->
   case extract_field(Field#adb_field.name, CurTableDef#adb_table.fields) of
     undefined ->
-      io:format("~s\t~s-- altering TABLE, adding COLUMN ~s (~p)~n",[?PARENT_MARK,?MARK(L),Field#adb_field.name,lists:flatten(io_lib:format("~p",[Field]))]),
+      ?STDOUT("~s\t~s-- altering TABLE, adding COLUMN ~s (~p)~n",[?PARENT_MARK,?MARK(L),Field#adb_field.name,lists:flatten(io_lib:format("~p",[Field]))]),
       Command = {add_column, Field},
       upgrade_fields(L, CurTableDef, [Command|Out]);
     CurFieldDef ->
-      io:format("~s\t~s-- COLUMN present: ~s (~p)~n",[?PARENT_MARK,?MARK(L),Field#adb_field.name,lists:flatten(io_lib:format("~p",[Field]))]),
+      ?STDOUT("~s\t~s-- COLUMN present: ~s (~p)~n",[?PARENT_MARK,?MARK(L),Field#adb_field.name,lists:flatten(io_lib:format("~p",[Field]))]),
       upgrade_fields(L, CurTableDef, Out)
   end.
 

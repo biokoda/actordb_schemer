@@ -2,7 +2,7 @@
 -author('Biokoda d.o.o.').
 -include("actordb_schemer.hrl").
 
--export([setup/1]).
+-export([setup/1,setup/2]).
 -export([schema/0, schema/1]).
 -export([version/0]).
 
@@ -10,7 +10,12 @@
 -export([upgrade/1]).
 
 setup(Module) ->
-  bkdcore:mkmodule(actordb_schemer_cfg,[{def_module, Module}]),
+  setup(Module, []).
+setup(Module,Opts) ->
+  bkdcore:mkmodule(actordb_schemer_cfg,[
+    {def_module, Module},
+    {silent, lists:member(silent, Opts)}
+  ]),
   ok.
 
 -spec version() -> integer().
