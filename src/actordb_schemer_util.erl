@@ -179,6 +179,20 @@ table_constraints(undefined) ->
 table_constraints(Opts) ->
   C = [begin
     case Opt of
+      % FOREIGN KEY (id) REFERENCES actors (id) ON DELETE CASCADE
+      % Example: {foreign_key,[{key,["id"]},{ref_table,"actors"},{ref_id,["id"]},{opts,[on_delete_cascade]}]}
+      {foreign_key, FKOpts} ->
+        Fk = iolist_to_binary(join(butil:ds_val(key,FKOpts), ",")),
+        Ref = iolist_to_binary(butil:ds_val(ref_table,FKOpts)),
+        RefId = iolist_to_binary(join(butil:ds_val(ref_id,FKOpts),",")),
+        FkCfg = butil:ds_val(opts,FKOpts),
+        case lists:member(on_delete_cascade, FkCfg) of
+          true ->
+            ODC = <<" ON DELETE CASCADE">>;
+          false ->
+            ODC = <<>>
+        end,
+        <<"FOREIGN KEY (",Fk/binary,") REFERENCES ", Ref/binary," (",RefId/binary,")", ODC/binary>>;
       {primary_key,KeyList} ->
         Keys = iolist_to_binary(join([ Key || Key <- KeyList],",")),
         <<"PRIMARY KEY (",Keys/binary,")">>;
