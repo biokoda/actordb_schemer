@@ -10,7 +10,7 @@ Usage:
 
 2. Create your schema through a module that matches the behaviour of **actordb_schemer_proto**.
 
-Example A:
+Example A - Schema version 0:
 ```
 -module(test_schema).
 -include_lib("actordb_schemer.hrl").
@@ -32,7 +32,7 @@ schema_def() ->
 
 ```
 
-Example B:
+Example A - Schema version 1:
 ```
 -module(test_schema).
 -include_lib("actordb_schemer.hrl").
