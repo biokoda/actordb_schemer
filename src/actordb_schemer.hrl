@@ -13,3 +13,5 @@
                   type :: binary(),
                   opts :: list(),
                   ver = 0:: integer()}).
+
+-define(ADBSC_FK(Fk,Rt,Rk), actordb_schemer_util:cnstr_fk(Fk,Rt,Rk)).
