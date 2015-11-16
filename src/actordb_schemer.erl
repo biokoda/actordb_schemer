@@ -24,7 +24,7 @@ setup(Module) ->
 setup(Module,Opts) when is_atom(Module) ->
   ok = validate_opts(Opts),
   application:set_env(actordb_schemer, opts, Opts),
-  true = validate_callbacks(Module),
+  ok = validate_callbacks(Module),
 	application:set_env(actordb_schemer, callback_module, Module).
 
 -spec validate_opts(Opts :: list()) -> ok.
@@ -34,14 +34,18 @@ validate_opts(Opts) ->
   [schemer_cfg(Opt)||Opt <- Opts], % validate all schemer options, throws error on unknown opt
   ok.
 
--spec validate_callbacks(Module :: atom()) -> true | false.
+-spec validate_callbacks(Module :: atom()) -> ok.
 %% @doc validates the callback Module
 %%
 validate_callbacks(Module) ->
   {exports, SCB} = lists:keyfind(exports, 1, Module:module_info()),
   SchemaDef = lists:keyfind(schema_def, 1, SCB) =/= false,
   SchemaVer = lists:keyfind(schema_ver, 1, SCB) =/= false,
-  lists:member(false,[SchemaDef, SchemaVer]).
+  case lists:member(false,[SchemaDef, SchemaVer]) of
+    true -> throw({error, bad_callback_mod_def, Module});
+    false -> ok
+  end.
+
 
 -spec schemer_opts() -> list().
 %%	@doc lists all options that schemer was setup with
