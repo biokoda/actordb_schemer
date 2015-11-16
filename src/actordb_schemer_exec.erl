@@ -251,7 +251,7 @@ table_constraints(Opts) ->
   end,C),
   case C0 of
     [] -> <<>>;
-    _ -> iolist_to_binary([<<",">>,join(C0," ")])
+    _ -> iolist_to_binary([<<", ">>,join(C0,", ")])
   end.
 
 -spec table_postcreate(Constraints :: list()) -> QueryPart :: binary().
