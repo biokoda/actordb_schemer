@@ -8,7 +8,7 @@
 -define(MARK(X), case X of [] -> "\\"; _ -> "|" end).
 -define(PARENT_MARK, case get(parent_mark) of undefined -> " "; _ -> "|" end).
 -define(STDOUT(X), ?STDOUT(X,[])).
--define(STDOUT(X,Y), case actordb_schemer_cfg:silent() of false -> io:format(X,Y); true -> ok end).
+-define(STDOUT(X,Y), case actordb_schemer:schemer_cfg(silent) of false -> io:format(X,Y); true -> ok end).
 
 -spec check(ActorConfig :: term(), ProvidedSchema :: list()) -> {ok, list()}.
 %% @doc compares live schema from ActorDB with local schema provided by the callback module

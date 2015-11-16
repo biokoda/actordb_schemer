@@ -13,34 +13,77 @@
 -export([check/1]).
 -export([upgrade/1]).
 
--spec setup(atom()) -> {module,actordb_schemer_cfg}.
+-export([schemer_cfg/1]).
+
+-spec setup(atom()) -> ok.
 %%	@doc configures ActorDB schemer with callback module for schema and version provider
 %%	module has to implement actordb_schemer_proto behaviour
 %%
 setup(Module) ->
   setup(Module, []).
 setup(Module,Opts) when is_atom(Module) ->
-	L = [{attribute,0,module,actordb_schemer_cfg},
-	 {attribute,0,export,[{def_module,0},{silent,0}]},
-	 {function,0,def_module,0,[{clause,0,[],[],[{atom,0,Module}]}]},
-	 {function,0,silent,0,[{clause,0,[],[],[{atom,0,lists:member(silent, Opts)}]}]}],
-	{ok, _, Bin} = compile:forms(L, [verbose, report_errors]),
-	code:purge(actordb_schemer_cfg),
-	code:load_binary(actordb_schemer_cfg, "actordb_schemer_cfg.erl", Bin).
+  ok = validate_opts(Opts),
+  application:set_env(actordb_schemer, opts, Opts),
+  true = validate_callbacks(Module),
+	application:set_env(actordb_schemer, callback_module, Module).
+
+-spec validate_opts(Opts :: list()) -> ok.
+%% @doc validates the opts configuration
+%%
+validate_opts(Opts) ->
+  [schemer_cfg(Opt)||Opt <- Opts], % validate all schemer options, throws error on unknown opt
+  ok.
+
+-spec validate_callbacks(Module :: atom()) -> true | false.
+%% @doc validates the callback Module
+%%
+validate_callbacks(Module) ->
+  {exports, SCB} = lists:keyfind(exports, 1, Module:module_info()),
+  SchemaDef = lists:keyfind(schema_def, 1, SCB) =/= false,
+  SchemaVer = lists:keyfind(schema_ver, 1, SCB) =/= false,
+  lists:member(false,[SchemaDef, SchemaVer]).
+
+-spec schemer_opts() -> list().
+%%	@doc lists all options that schemer was setup with
+%%
+schemer_opts() ->
+  case application:get_env(actordb_schemer, opts) of
+    {ok, Opts} ->
+      Opts;
+    _ ->
+      []
+  end.
+
+-spec schemer_cfg(Config :: any()) -> any().
+%%	@doc fetches a schemer config, throws an error if it is an unknown configuration entry
+%%  Config = silent -> true | false
+%%
+schemer_cfg(silent) ->
+  lists:member(silent, schemer_opts());
+schemer_cfg(Opt) ->
+  throw({error, unknown_schemer_opt, Opt}).
+
+callback_module() ->
+  case application:get_env(actordb_schemer, callback_module) of
+    {ok, Mod} ->
+      Mod;
+    E ->
+      throw({error,{bad_callback_module, E}})
+  end.
 
 -spec version() -> integer().
 %% @doc minimum schema version that has to be present in order for the biocoded to expose full functionality
 %%
 version() ->
-  M = actordb_schemer_cfg:def_module(),
-  M:schema_ver().
+  Mod = callback_module(),
+  Mod:schema_ver().
 
 -spec fetch_schema() -> list().
 %% @doc retrieve schema
 %%
 fetch_schema() ->
-  M = actordb_schemer_cfg:def_module(),
-  M:schema_def().
+  Mod = callback_module(),
+  Mod:schema_def().
 
 -spec schema() -> list().
 %%	@doc fetches schema from callback module for the current version set in callback module
@@ -109,14 +152,21 @@ upgrade(AdbConfig) ->
     ]}
   ]}
 ]).
+-define('test-schema-1-version',0).
+
+schema_def() ->
+  ?'test-schema-1'.
+
+schema_ver() ->
+  ?'test-schema-1-version'.
 
 schemer_test() ->
   application:ensure_all_started(actordb_schemer),
   actordb_schemer:setup(?MODULE,[silent]),
   CheckResult1 = actordb_schemer_exec:check({schema,?'test-schema-1'},?'test-schema-1'),
   CheckResult2 = actordb_schemer_exec:check({schema,?'test-schema-1'},?'test-schema-2'),
-  [?assertEqual(?MODULE,actordb_schemer_cfg:def_module()),
-  ?assertEqual(true,actordb_schemer_cfg:silent()),
+  [?assertEqual(?MODULE,callback_module()),
+  ?assertEqual(true,schemer_cfg(silent)),
   ?assertMatch({ok,[]},CheckResult1),
   ?assertMatch({ok,[_|_]},CheckResult2)].
 
