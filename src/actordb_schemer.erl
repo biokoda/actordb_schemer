@@ -4,6 +4,7 @@
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
+-export([schema_def/0,schema_ver/0]).
 -endif.
 
 -export([setup/1,setup/2]).
@@ -134,7 +135,6 @@ upgrade(AdbConfig) ->
   actordb_schemer_exec:upgrade(AdbConfig, schema()).
 
 -ifdef(TEST).
-
 -define('test-schema-1',[
   #adb_actor{ name = <<"test-actor">>, opts = [without_rowid], tables = [
     #adb_table{ name = <<"test-table1">>, fields = [
@@ -173,5 +173,4 @@ schemer_test() ->
   ?assertEqual(true,schemer_cfg(silent)),
   ?assertMatch({ok,[]},CheckResult1),
   ?assertMatch({ok,[_|_]},CheckResult2)].
-
 -endif.

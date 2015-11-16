@@ -230,10 +230,10 @@ table_constraints(Opts) ->
       % FOREIGN KEY (id) REFERENCES actors (id) ON DELETE CASCADE
       % Example: {foreign_key,[{key,["id"]},{ref_table,"actors"},{ref_id,["id"]},{opts,[on_delete_cascade]}]}
       {foreign_key, FKOpts} ->
-        Fk = join(lists:keyfind(key,1,FKOpts), ","),
-        Ref = lists:keyfind(ref_table,1,FKOpts),
-        RefId = join(lists:keyfind(ref_id,1,FKOpts),","),
-        FkCfg = lists:keyfind(opts,1,FKOpts),
+        Fk = join(fetch_opt(key,FKOpts), ","),
+        Ref = fetch_opt(ref_table,FKOpts),
+        RefId = join(fetch_opt(ref_id,FKOpts),","),
+        FkCfg = fetch_opt(opts,FKOpts),
         ODC = [<<" ON DELETE CASCADE">> || true <- [lists:member(on_delete_cascade, FkCfg)]],
         OUC = [<<" ON UPDATE CASCADE">> || true <- [lists:member(on_update_cascade, FkCfg)]],
         iolist_to_binary(["FOREIGN KEY (",Fk,") REFERENCES ", Ref," (",RefId,")", ODC, OUC]);
@@ -301,3 +301,12 @@ join([A],_,Out) ->
   lists:reverse([A|Out]);
 join([A|B], Itm, Out) ->
   join(B, Itm, [Itm,A|Out]).
+
+%% @private
+fetch_opt(Key, Opts) ->
+  case lists:keyfind(Key, 1, Opts) of
+    {Key,Value} ->
+      Value;
+    _ ->
+      undefined
+  end.
