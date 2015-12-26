@@ -7,6 +7,8 @@
 -export([main/1]).
 -export([schema_def/0, schema_ver/0]).
 
+-define(B(X), iolist_to_binary(X)).
+
 -spec main(Params :: list()) -> any().
 %%  @doc Entry point to schemer loop.
 %%
@@ -31,6 +33,8 @@ main(Params) ->
   end.
 
 -spec fetch_param( Param :: atom(), Params :: list(), Default :: any()) -> Value :: any().
+%% @doc returns a value for a param from lists of {Param,Value} tuples
+%%  if such tuple is not present Default is returned
 fetch_param(Param, Params, Default) ->
   case lists:keyfind(Param, 1, Params) of
     false ->
@@ -131,6 +135,11 @@ execute(Addr, Port, Username, Password, Fname, Action) ->
   end,
   ok.
 
+-spec schema_def() -> SchemaDef :: list().
+%% @doc callback for schema definition
+%%  parses the schema file (erlang syntax, file:consult/1)
+%%  check example schema example.adbschema for file layout
+%%
 schema_def() ->
   io:format("ActorDB Schemer, resolving schema ... ~n"),
   {ok, [Parsed]} = file:consult(get(actordb_schemer_filename)),
@@ -138,6 +147,11 @@ schema_def() ->
   % io:format("Consult: ~p~n",[Schema]),
   resolve_schema(Schema).
 
+-spec schema_ver() -> SchemaVersion :: integer().
+%% @doc callback for schema version
+%%  parses the schema file (erlang syntax, file:consult/1)
+%%  check example schema example.adbschema for file layout
+%%
 schema_ver() ->
   io:format("ActorDB Schemer, resolving schema version ... ~n"),
   {ok, [Parsed]} = file:consult(get(actordb_schemer_filename)),
@@ -145,8 +159,9 @@ schema_ver() ->
   io:format("ActorDB Schemer, schema version: ~p ~n",[Version]),
   Version.
 
--define(B(X), iolist_to_binary(X)).
-
+-spec resolve_schema(IntermedSchema :: list()) -> SchemerFormat :: list().
+%% @doc transforms 'actor' depth of schema definition to #adb_actor{} records
+%%
 resolve_schema(Schema) ->
   [begin
     {actor,Actor} = ActorDef,
@@ -162,6 +177,9 @@ resolve_schema(Schema) ->
     }
   end || ActorDef <- Schema].
 
+-spec resolve_actor_tables(Tables :: list()) -> SchemerFormat :: list().
+%% @doc transforms 'table' depth of schema definition to #adb_table{} records
+%%  ; parses tables
 resolve_actor_tables(Tables) ->
   [begin
     {table, Table} = TableDef,
@@ -177,6 +195,9 @@ resolve_actor_tables(Tables) ->
     }
   end || TableDef <- Tables].
 
+-spec resolve_table_fields(Fields :: list()) -> SchemerFormat :: list().
+%% @doc transforms 'field' depth of schema definition to #adb_field{} records
+%%
 resolve_table_fields(Fields) ->
   [begin
     {field, Field} = FieldDef,
@@ -192,6 +213,9 @@ resolve_table_fields(Fields) ->
     }
   end || FieldDef <- Fields].
 
+-spec print_sqls(Tag :: string(), Sqls :: list()) -> ok.
+%% @doc Prints SQL statements to stdout prepending them with Tag
+%%
 print_sqls(_,[]) ->
   io:format("~n"),
   ok;
