@@ -4,3 +4,5 @@ ebin/*
 .rebar/erlcinfo
 rebar
 .DS_Store
+./actordb_schemer
+actordb_schemer

@@ -1,0 +1,31 @@
+[
+  {version, 1},
+  {schema,[
+    {actor, [
+      {name, "example_actor"},
+      {ver, 0},
+      {opts, []},
+      {tables,[
+        {table, [
+          {name, "example_actor_table"},
+          {ver, 0},
+          {opts, []},
+          {fields,[
+            {field,[
+              {name, "example_id2"},
+              {type, "INTEGER"},
+              {opts,[]},
+              {ver, 0}
+            ]},
+            {field,[
+              {name, "example_id3"},
+              {type, "TEXT"},
+              {opts,[]},
+              {ver, 0}
+            ]}
+          ]}
+        ]}
+      ]}
+    ]}
+  ]}
+].

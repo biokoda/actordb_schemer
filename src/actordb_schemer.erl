@@ -7,6 +7,8 @@
 -export([schema_def/0,schema_ver/0]).
 -endif.
 
+-export([main/1]).
+
 -export([setup/1,setup/2]).
 -export([schema/0, schema/1]).
 -export([version/0]).
@@ -15,6 +17,12 @@
 -export([upgrade/1]).
 
 -export([schemer_cfg/1]).
+
+-spec main(Params :: list()) -> any().
+%% @doc executes schemer as a standalone tool
+%%
+main(Params) ->
+  actordb_schemer_cmd:main(Params).
 
 -spec setup(atom()) -> ok.
 %%	@doc configures ActorDB schemer with callback module for schema and version provider
