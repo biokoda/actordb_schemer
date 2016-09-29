@@ -2,7 +2,7 @@
 
 -define(CMD_VER,"0.1").
 
--include("actordb_schemer.hrl").
+-include_lib("actordb_schemer/include/actordb_schemer.hrl").
 
 -export([main/1]).
 -export([schema_def/0, schema_ver/0]).

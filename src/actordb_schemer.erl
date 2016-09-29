@@ -1,6 +1,6 @@
 -module(actordb_schemer).
 -author('Biokoda d.o.o.').
--include("actordb_schemer.hrl").
+-include_lib("actordb_schemer/include/actordb_schemer.hrl").
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").

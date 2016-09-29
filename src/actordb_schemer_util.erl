@@ -1,5 +1,5 @@
 -module(actordb_schemer_util).
--include("actordb_schemer.hrl").
+-include_lib("actordb_schemer/include/actordb_schemer.hrl").
 -author('Biokoda d.o.o.').
 
 -export([cnstr_fk/3]).
