@@ -285,6 +285,9 @@ get_constraints(undefined) ->
 get_constraints(L) ->
   Bin = [begin
     case F of
+      {default,Int} when is_integer(Int) -> <<"DEFAULT ",(integer_to_binary(Int))/binary>>;
+      {default,Str} when is_binary(Str); is_list(Str) -> <<"DEFAULT '",(iolist_to_binary(Str))/binary,"'">>;
+      {default,Float} when is_float(Float) -> <<"DEFAULT ",(float_to_binary(Float))/binary>>;
       not_null -> <<"NOT NULL">>;
       primary_key -> <<"PRIMARY KEY">>;
       autoincrement -> <<"AUTOINCREMENT">>
